@@ -28,7 +28,9 @@ class AuthController extends Controller
             'message' => 'Sesión inciada',
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => $user,
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
         ]);
     }
 }

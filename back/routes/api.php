@@ -3,9 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,29 +26,33 @@ Route::prefix('client')->group(function () {
 | Rutas Administrativas (Cocina / Dueño) - Protegidas por Sanctum
 |--------------------------------------------------------------------------
 */
-Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::prefix('admin')->group(function () {
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
     // Rutas para la cocina
-    Route::get('/kitchen/orders', [OrderController::class, 'kitchenOrders']);
-    Route::put('/kitchen/orders/{id}/status', [OrderController::class, 'updateStatus']);
+    Route::get('/kitchen/orders', [OrderController::class, 'kitchenOrders'])
+        ->middleware('permission:orders.kitchen.view');
+    Route::put('/kitchen/orders/{id}/status', [OrderController::class, 'updateStatus'])
+        ->middleware('permission:orders.status.update');
 
     // Métricas para el dueño
-    Route::get('/metrics', [OrderController::class, 'metrics']);
+    Route::get('/metrics', [OrderController::class, 'metrics'])
+        ->middleware('permission:metrics.view');
 
     // Rutas para la caja (cobro)
-    Route::get('/cashier/orders', [OrderController::class, 'cashierOrders']);
+    Route::get('/cashier/orders', [OrderController::class, 'cashierOrders'])
+        ->middleware('permission:orders.cashier.view');
     
     // Rutas para los QRs (Mesas)
-    Route::get('/tables', function () {
-        return \App\Models\Table::all();
-    });
+    Route::get('/tables', [TableController::class, 'index'])->middleware('permission:tables.view');
+    Route::post('/tables/generate', [TableController::class, 'generate'])->middleware('permission:tables.manage');
+    Route::post('/tables/reset', [TableController::class, 'reset'])->middleware('permission:tables.manage');
 
     // CRUD para administrar menú
-    Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('products', ProductController::class);
+    Route::apiResource('categories', CategoryController::class)->middleware('permission:menu.manage');
+    Route::apiResource('products', ProductController::class)->middleware('permission:menu.manage');
 });

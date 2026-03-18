@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ShoppingBag, Plus, Minus, X, Trash2, UtensilsCrossed, QrCode } from 'lucide-react';
 import api from '../lib/axios';
@@ -9,8 +9,9 @@ function ClientMenu() {
   const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, clearCart, setTableId } = useCartStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(0);
+  const { token: pathToken } = useParams();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const token = pathToken || searchParams.get('token');
 
   // Fetch Menú
   const { data: categories, isLoading, error } = useQuery({

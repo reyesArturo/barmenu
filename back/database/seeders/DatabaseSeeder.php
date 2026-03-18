@@ -17,30 +17,47 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Administradores y Cocineros
-        User::create([
-            'name' => 'Admin Owner',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin'
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Administrador',
+                'password' => Hash::make('cocina123CH'),
+                'role' => 'admin',
+            ]
+        );
 
-        User::create([
-            'name' => 'Cocinero',
-            'email' => 'cocina@admin.com',
-            'password' => Hash::make('password'),
-            'role' => 'kitchen'
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cocina@admin.com'],
+            [
+                'name' => 'Cocinero',
+                'password' => Hash::make('cocina123CH'),
+                'role' => 'kitchen',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'caja@admin.com'],
+            [
+                'name' => 'Caja',
+                'password' => Hash::make('cocina123CH'),
+                'role' => 'cashier',
+            ]
+        );
+
+        $this->call(RolesAndPermissionsSeeder::class);
 
         // Mesas
         $mesas = [
             ['number' => 'Mesa 1', 'qr_token' => 'mesa-1-secret-qr-token'],
             ['number' => 'Mesa 2', 'qr_token' => 'mesa-2-secret-qr-token'],
             ['number' => 'Mesa 3', 'qr_token' => 'mesa-3-secret-qr-token'],
-            ['number' => 'Barra', 'qr_token' => 'barra-secret-qr-token'],
         ];
 
         foreach ($mesas as $mesa) {
-            Table::create($mesa);
+            Table::updateOrCreate(
+                ['number' => $mesa['number']],
+                ['qr_token' => $mesa['qr_token']]
+            );
         }
 
         // Categorías

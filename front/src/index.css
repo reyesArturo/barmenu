@@ -15,3 +15,107 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+@layer components {
+  .btn-hover {
+    transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn-hover:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+  }
+
+  .btn-hover:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .admin-shell.theme-dark {
+    background-color: #0f0f13;
+  }
+
+  .admin-shell.theme-dark .admin-sidebar {
+    background-color: #1a1a24;
+  }
+
+  .admin-shell.theme-dark .admin-main {
+    background-color: #000;
+  }
+
+  .admin-shell.theme-light {
+    background: linear-gradient(135deg, #eef3fb 0%, #f8fbff 100%);
+    color: #0f172a;
+  }
+
+  .admin-shell.theme-light .admin-sidebar {
+    background-color: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-shell.theme-light .admin-main {
+    background-color: #f1f5f9;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+
+  .admin-shell.theme-light .bg-bg-dark {
+    background-color: #f1f5f9 !important;
+  }
+
+  .admin-shell.theme-light .bg-card-dark {
+    background-color: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .admin-shell.theme-light .text-white {
+    color: #0f172a !important;
+  }
+
+  .admin-shell.theme-light .hover\:text-white:hover {
+    color: #0f172a !important;
+  }
+
+  .admin-shell.theme-light .text-gray-400 {
+    color: #475569 !important;
+  }
+
+  .admin-shell.theme-light .text-gray-300 {
+    color: #334155 !important;
+  }
+
+  .admin-shell.theme-light .text-gray-500 {
+    color: #64748b !important;
+  }
+
+  .admin-shell.theme-light .bg-white\/5 {
+    background-color: rgba(15, 23, 42, 0.06) !important;
+  }
+
+  .admin-shell.theme-light .bg-white\/10 {
+    background-color: rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .admin-shell.theme-light .hover\:bg-white\/5:hover {
+    background-color: rgba(15, 23, 42, 0.1) !important;
+  }
+
+  .admin-shell.theme-light .hover\:bg-white\/10:hover {
+    background-color: rgba(15, 23, 42, 0.14) !important;
+  }
+
+  .admin-shell.theme-light .hover\:bg-white\/20:hover {
+    background-color: rgba(15, 23, 42, 0.2) !important;
+  }
+
+  .admin-shell.theme-light .border-white\/10,
+  .admin-shell.theme-light .border-white\/5 {
+    border-color: rgba(15, 23, 42, 0.08) !important;
+  }
+
+  .admin-shell .on-accent {
+    color: #ffffff !important;
+  }
+
+  .admin-shell .on-warm {
+    color: #111827 !important;
+  }
+}
