@@ -52,7 +52,10 @@ function Login() {
 
       navigate(resolveRedirect(permissions), { replace: true });
     } catch (err) {
-      const message = err?.response?.data?.message || 'No se pudo iniciar sesión';
+      const message = err?.response?.data?.message
+        || (err?.code === 'ECONNABORTED' ? 'El servidor tardó demasiado en responder.' : '')
+        || (!err?.response ? 'No hubo respuesta del servidor. Revisa la red local y el puerto 8000.' : '')
+        || 'No se pudo iniciar sesión';
       setError(message);
     } finally {
       setLoading(false);
@@ -68,8 +71,7 @@ function Login() {
   return (
     <div className="min-h-screen bg-[#0b0c10] text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-[#131620] border border-white/10 rounded-2xl shadow-2xl p-8">
-        <h1 className="text-3xl font-black uppercase tracking-wide text-[#ff6f00]">Acceso Staff</h1>
-        <p className="text-gray-400 mt-2 text-sm">Administra cocina, caja y dashboard con tu cuenta autorizada.</p>
+        <h1 className="text-3xl font-black text-center uppercase tracking-wide text-[#ff6f00]">Login</h1>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>
@@ -119,9 +121,7 @@ function Login() {
           </button>
         </form>
 
-        <p className="text-xs text-gray-500 mt-6">
-          Acceso cliente: usa la ruta <strong>/cliente</strong> o escanea QR con <strong>/cliente/:token</strong>.
-        </p>
+       
       </div>
     </div>
   );

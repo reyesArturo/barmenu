@@ -1,10 +1,16 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
-import { ChefHat, CheckSquare } from 'lucide-react';
+import { ChefHat, CheckSquare, History, FlameKindling } from 'lucide-react';
 
 function Kitchen() {
   const queryClient = useQueryClient();
+  const statusLabels = {
+    pending: 'Pendiente',
+    preparing: 'Preparando',
+    served: 'Servido',
+    paid: 'Pagado',
+  };
 
   // Fetch pedidos de cocina (Idealmente polling cada 5 segundos si no hay websockets)
   const { data: orders, isLoading, error } = useQuery({
@@ -16,17 +22,29 @@ function Kitchen() {
     refetchInterval: 5000 // Polling cada 5 seg
   });
 
+  const { data: history } = useQuery({
+    queryKey: ['kitchen-history'],
+    queryFn: async () => {
+      const res = await api.get('/admin/kitchen/history');
+      return res.data;
+    },
+    refetchInterval: 5000,
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ orderId, status }) => {
       await api.put(`/admin/kitchen/orders/${orderId}/status`, { status });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['kitchen-orders']);
+      queryClient.invalidateQueries({ queryKey: ['kitchen-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['kitchen-history'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-metrics'] });
     }
   });
 
-  const handleDeliver = (orderId) => {
-    updateStatusMutation.mutate({ orderId, status: 'served' });
+  const handleAdvanceStatus = (order) => {
+    const nextStatus = order.status === 'pending' ? 'preparing' : 'served';
+    updateStatusMutation.mutate({ orderId: order.id, status: nextStatus });
   };
 
   if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando comandas...</div>;
@@ -42,7 +60,7 @@ function Kitchen() {
           <p className="text-gray-400 font-bold tracking-widest uppercase text-sm mt-2">Visión de Chef</p>
         </div>
         <div className="bg-primary/20 text-primary px-4 py-2 rounded-full font-bold">
-          {orders?.length || 0} Pendientes
+          {orders?.length || 0} Activas
         </div>
       </header>
 
@@ -61,11 +79,11 @@ function Kitchen() {
 
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-2xl font-black uppercase">Mesa {order.table_id}</h3>
+                  <h3 className="text-2xl font-black uppercase">{order.table?.number ?? `Mesa ${order.table_id}`}</h3>
                   <span className="text-xs text-gray-400 font-mono">#{order.id.toString().padStart(4, '0')}</span>
                 </div>
                 <span className="bg-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-                  {order.status}
+                  {statusLabels[order.status] ?? order.status}
                 </span>
               </div>
 
@@ -81,15 +99,51 @@ function Kitchen() {
               </div>
 
               <button 
-                onClick={() => handleDeliver(order.id)}
+                onClick={() => handleAdvanceStatus(order)}
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-black uppercase tracking-widest py-3 rounded-xl transition-colors active:scale-95 shadow-[0_0_15px_rgba(22,163,74,0.3)]"
               >
-                <CheckSquare size={20} /> Marcar Listo
+                {order.status === 'pending' ? <FlameKindling size={20} /> : <CheckSquare size={20} />}
+                {order.status === 'pending' ? 'Empezar Preparación' : 'Marcar Listo'}
               </button>
             </div>
           ))
         )}
       </div>
+
+      <section className="mt-10">
+        <div className="flex items-center gap-3 mb-4">
+          <History size={22} className="text-gray-300" />
+          <h2 className="text-2xl font-black uppercase">Historial Reciente</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {history?.length ? history.map((order) => (
+            <div key={order.id} className="bg-card-dark border border-white/10 rounded-2xl p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-black uppercase">{order.table?.number ?? `Mesa ${order.table_id}`}</h3>
+                  <p className="text-xs text-gray-400 font-mono mt-1">#{order.id.toString().padStart(4, '0')}</p>
+                </div>
+                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full ${order.status === 'paid' ? 'bg-green-500/20 text-green-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                  {statusLabels[order.status] ?? order.status}
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {order.items?.slice(0, 3).map((item, idx) => (
+                  <div key={idx} className="text-sm text-gray-300 flex justify-between">
+                    <span>{item.quantity}x {item.product?.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )) : (
+            <div className="col-span-full text-gray-500 border border-white/5 rounded-2xl p-6 text-center">
+              Aún no hay historial de preparaciones recientes.
+            </div>
+          )}
+        </div>
+      </section>
 
     </div>
   );

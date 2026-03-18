@@ -1,11 +1,102 @@
 import { create } from 'zustand';
 
-export const useCartStore = create((set) => ({
-    items: [],
-    tableId: null, // Ahora iniciará nulo hasta escanear el QR
-    notes: '',
+const STORAGE_KEY = 'rb_client_state';
 
-    setTableId: (id) => set({ tableId: id }),
+function getStoredClientState() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+            return {
+                tableId: null,
+                tableNumber: null,
+                lastOrderId: null,
+                lastOrderStatus: null,
+                lastOrderUpdatedAt: null,
+            };
+        }
+
+        const parsed = JSON.parse(raw);
+        return {
+            tableId: parsed.tableId ?? null,
+            tableNumber: parsed.tableNumber ?? null,
+            lastOrderId: parsed.lastOrderId ?? null,
+            lastOrderStatus: parsed.lastOrderStatus ?? null,
+            lastOrderUpdatedAt: parsed.lastOrderUpdatedAt ?? null,
+        };
+    } catch {
+        return {
+            tableId: null,
+            tableNumber: null,
+            lastOrderId: null,
+            lastOrderStatus: null,
+            lastOrderUpdatedAt: null,
+        };
+    }
+}
+
+function saveClientState(state) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        tableId: state.tableId,
+        tableNumber: state.tableNumber,
+        lastOrderId: state.lastOrderId,
+        lastOrderStatus: state.lastOrderStatus,
+        lastOrderUpdatedAt: state.lastOrderUpdatedAt,
+    }));
+}
+
+export const useCartStore = create((set, get) => ({
+    items: [],
+    ...getStoredClientState(),
+    notes: '',
+    lastOrderId: getStoredClientState().lastOrderId,
+    lastOrderStatus: getStoredClientState().lastOrderStatus,
+    lastOrderUpdatedAt: getStoredClientState().lastOrderUpdatedAt,
+
+    setTableId: (id) => set((state) => {
+        const nextState = { ...state, tableId: id };
+        saveClientState(nextState);
+        return { tableId: id };
+    }),
+    setTable: (table) => set((state) => {
+        const nextState = {
+            ...state,
+            tableId: table?.id ?? null,
+            tableNumber: table?.number ?? null,
+        };
+        saveClientState(nextState);
+        return {
+            tableId: table?.id ?? null,
+            tableNumber: table?.number ?? null,
+        };
+    }),
+    setLastOrder: (order) => set((state) => {
+        const nextState = {
+            ...state,
+            lastOrderId: order?.id ?? null,
+            lastOrderStatus: order?.status ?? null,
+            lastOrderUpdatedAt: order?.updated_at ?? null,
+        };
+        saveClientState(nextState);
+        return {
+            lastOrderId: order?.id ?? null,
+            lastOrderStatus: order?.status ?? null,
+            lastOrderUpdatedAt: order?.updated_at ?? null,
+        };
+    }),
+    clearLastOrder: () => set((state) => {
+        const nextState = {
+            ...state,
+            lastOrderId: null,
+            lastOrderStatus: null,
+            lastOrderUpdatedAt: null,
+        };
+        saveClientState(nextState);
+        return {
+            lastOrderId: null,
+            lastOrderStatus: null,
+            lastOrderUpdatedAt: null,
+        };
+    }),
 
     addToCart: (product) => set((state) => {
         const existingItem = state.items.find(item => item.product_id === product.id);

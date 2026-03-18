@@ -4,13 +4,21 @@ const baseURL = import.meta.env.VITE_API_URL || 'http://localhost/reyes/Restaura
 
 const api = axios.create({
     baseURL,
+    timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'bypass-tunnel-reminder': 'true',
     }
 });
 
 api.interceptors.request.use((config) => {
+    if (config.data instanceof FormData) {
+        if (config.headers) {
+            delete config.headers['Content-Type'];
+        }
+    }
+
     try {
         const raw = localStorage.getItem('rb_auth');
         if (!raw) return config;

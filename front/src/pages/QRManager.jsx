@@ -3,10 +3,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { QRCodeSVG } from 'qrcode.react';
 import { QrCode, Printer } from 'lucide-react';
+import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 function QRManager() {
   const queryClient = useQueryClient();
   const [count, setCount] = useState(1);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   const { data: tables, isLoading } = useQuery({
     queryKey: ['tables'],
@@ -21,9 +24,10 @@ function QRManager() {
       const res = await api.post('/admin/tables/generate', { count: qty });
       return res.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, qty) => {
       await queryClient.invalidateQueries({ queryKey: ['tables'] });
       await queryClient.refetchQueries({ queryKey: ['tables'], type: 'active' });
+      toast.success(`QRs creados. Se generaron ${qty} mesa(s) nuevas.`);
     }
   });
 
@@ -32,9 +36,10 @@ function QRManager() {
       const res = await api.post('/admin/tables/reset', { count: qty });
       return res.data;
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, qty) => {
       await queryClient.invalidateQueries({ queryKey: ['tables'] });
       await queryClient.refetchQueries({ queryKey: ['tables'], type: 'active' });
+      toast.success(`Mesas reiniciadas. Se recrearon ${qty} mesa(s) desde Mesa 1.`);
     }
   });
 
@@ -45,7 +50,7 @@ function QRManager() {
   const handleGenerate = async () => {
     const qty = Number(count);
     if (!Number.isInteger(qty) || qty < 1) {
-      alert('Ingresa una cantidad valida mayor a 0.');
+      toast.error('Cantidad inválida. Ingresa una cantidad válida mayor a 0.');
       return;
     }
 
@@ -53,33 +58,42 @@ function QRManager() {
       await generateTablesMutation.mutateAsync(qty);
     } catch (error) {
       const message = error?.response?.data?.message || 'No se pudieron crear los QRs';
-      alert(message);
+      toast.error(`No se pudieron crear los QRs. ${message}`);
     }
   };
 
   const handleResetAndGenerate = async () => {
     const qty = Number(count);
     if (!Number.isInteger(qty) || qty < 1) {
-      alert('Ingresa una cantidad valida mayor a 0.');
+      toast.error('Cantidad inválida. Ingresa una cantidad válida mayor a 0.');
       return;
     }
 
-    const confirmed = window.confirm(`Se eliminaran las mesas actuales y se crearan ${qty} desde Mesa 1. ¿Deseas continuar?`);
-    if (!confirmed) return;
+    setIsResetDialogOpen(true);
+  };
+
+  const confirmResetAndGenerate = async () => {
+    const qty = Number(count);
+    if (!Number.isInteger(qty) || qty < 1) {
+      toast.error('Cantidad inválida. Ingresa una cantidad válida mayor a 0.');
+      setIsResetDialogOpen(false);
+      return;
+    }
 
     try {
       await resetTablesMutation.mutateAsync(qty);
       setCount(1);
+      setIsResetDialogOpen(false);
     } catch (error) {
       const message = error?.response?.data?.message || 'No se pudieron reiniciar las mesas';
-      alert(message);
+      toast.error(`No se pudieron reiniciar las mesas. ${message}`);
     }
   };
 
   if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando las mesas...</div>;
 
-  // URL base dinámica dependiendo de dónde corra el frontend.
-  const baseUrl = window.location.origin;
+  // URL base: usa la var de entorno si existe, o el origin actual como fallback.
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
 
   return (
     <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
@@ -157,6 +171,17 @@ function QRManager() {
           );
         })}
       </div>
+
+      <ConfirmDialog
+        open={isResetDialogOpen}
+        title="Reiniciar mesas"
+        message={`Se eliminarán las mesas actuales y se crearán ${Number(count) || 1} desde Mesa 1. ¿Deseas continuar?`}
+        confirmText="Sí, reiniciar"
+        cancelText="Cancelar"
+        onCancel={() => setIsResetDialogOpen(false)}
+        onConfirm={confirmResetAndGenerate}
+        loading={resetTablesMutation.isPending}
+      />
 
     </div>
   );

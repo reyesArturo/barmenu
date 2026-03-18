@@ -1,17 +1,49 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, Plus, Minus, X, Trash2, UtensilsCrossed, QrCode } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, Trash2, UtensilsCrossed, QrCode, BellRing, Clock3, ChefHat, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../lib/axios';
 import { useCartStore } from '../store/cartStore';
 
 function ClientMenu() {
-  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, clearCart, setTableId } = useCartStore();
+  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, tableNumber, clearCart, setTable, lastOrderId, lastOrderStatus, setLastOrder } = useCartStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(0);
   const { token: pathToken } = useParams();
   const [searchParams] = useSearchParams();
   const token = pathToken || searchParams.get('token');
+
+  const statusMeta = {
+    pending: {
+      label: 'Pedido recibido',
+      description: 'Tu orden ya fue registrada y está en fila para cocina.',
+      icon: Clock3,
+      accent: 'text-yellow-400',
+      bg: 'bg-yellow-500/10 border-yellow-500/20',
+    },
+    preparing: {
+      label: 'En preparación',
+      description: 'Cocina ya está preparando tu pedido.',
+      icon: ChefHat,
+      accent: 'text-orange-400',
+      bg: 'bg-orange-500/10 border-orange-500/20',
+    },
+    served: {
+      label: 'Listo para entregar',
+      description: 'Tu pedido ya está listo y va en camino a tu mesa.',
+      icon: CheckCircle2,
+      accent: 'text-green-400',
+      bg: 'bg-green-500/10 border-green-500/20',
+    },
+    paid: {
+      label: 'Cuenta cerrada',
+      description: 'La orden ya fue cobrada. Gracias por tu visita.',
+      icon: CheckCircle2,
+      accent: 'text-blue-400',
+      bg: 'bg-blue-500/10 border-blue-500/20',
+    },
+  };
 
   // Fetch Menú
   const { data: categories, isLoading, error } = useQuery({
@@ -19,36 +51,75 @@ function ClientMenu() {
     queryFn: async () => {
       const res = await api.get('/client/menu');
       return res.data;
-    }
+    },
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   // Validar Mesa si hay Token QR
-  const { isError: isTokenError, isLoading: isLoadingToken } = useQuery({
+  const { data: tableData, isError: isTokenError, isLoading: isLoadingToken } = useQuery({
     queryKey: ['table-token', token],
     queryFn: async () => {
       const res = await api.get(`/client/table/${token}`);
-      setTableId(res.data.id);
       return res.data;
     },
     enabled: !!token, 
     retry: false
   });
 
+  const { data: trackedOrder } = useQuery({
+    queryKey: ['client-order-status', lastOrderId],
+    queryFn: async () => {
+      const res = await api.get(`/client/orders/${lastOrderId}`);
+      return res.data;
+    },
+    enabled: !!lastOrderId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === 'paid' ? 0 : 5000;
+    },
+    refetchOnWindowFocus: true,
+  });
+
+  useEffect(() => {
+    if (tableData) {
+      setTable(tableData);
+    }
+  }, [tableData, setTable]);
+
+  useEffect(() => {
+    if (!trackedOrder) return;
+
+    if (trackedOrder.status !== lastOrderStatus) {
+      const current = statusMeta[trackedOrder.status];
+      if (current) {
+        toast.success(current.label, {
+          id: `order-status-${trackedOrder.id}`,
+        });
+      }
+    }
+
+    setLastOrder(trackedOrder);
+  }, [trackedOrder, lastOrderStatus, setLastOrder]);
+
   const handleCheckout = async () => {
     try {
       if (items.length === 0) return;
-      
-      await api.post('/client/orders', {
+
+      const { data } = await api.post('/client/orders', {
         table_id: tableId,
         items: items
       });
 
-      alert('¡Pedido enviado a cocina con éxito!');
+      setLastOrder(data);
+
+      toast.success('Pedido enviado a cocina. Tu orden ya está en preparación.');
       clearCart();
       setIsCartOpen(false);
 
     } catch (err) {
-      alert('Hubo un error al enviar el pedido. Por favor avisa a tu mesero.');
+      toast.error('No se pudo enviar el pedido. Por favor avisa a tu mesero.');
       console.error(err);
     }
   };
@@ -64,12 +135,12 @@ function ClientMenu() {
          {isTokenError && <p className="text-red-500 mt-4 font-bold border border-red-500/20 bg-red-500/10 p-4 rounded-xl">Código de mesa inválido o caducado.</p>}
          
          {/* Botón rápido para saltar el modo QR durante el desarrollo */}
-         <button 
+         {/* <button 
            onClick={() => { setTableId(1); setBypass(true); }} 
            className="mt-12 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold py-3 px-6 rounded-xl transition-colors text-sm uppercase tracking-widest"
          >
             Saltar y simular Mesa 1
-         </button>
+         </button> */}
       </div>
     );
   }
@@ -78,6 +149,10 @@ function ClientMenu() {
   if (error) return <div className="h-screen w-full bg-bg-dark flex items-center justify-center text-red-500">Error al cargar el menú</div>;
 
   const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+  const tableLabel = tableData?.number || tableNumber || (tableId ? `Mesa ${tableId}` : 'Mesa');
+  const currentStatus = trackedOrder?.status || lastOrderStatus;
+  const currentStatusMeta = currentStatus ? statusMeta[currentStatus] : null;
+  const StatusIcon = currentStatusMeta?.icon || BellRing;
 
   return (
     <div className="min-h-screen pb-24 bg-bg-dark text-white font-sans">
@@ -89,9 +164,32 @@ function ClientMenu() {
         </h1>
         <p className="text-sm text-gray-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
           <UtensilsCrossed size={14} className="text-secondary" />
-          Mesa {tableId}
+          {tableLabel}
         </p>
       </header>
+
+      {trackedOrder && currentStatusMeta && (
+        <div className="px-4 pt-5">
+          <div className={`border rounded-2xl p-4 ${currentStatusMeta.bg}`}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className={`mt-1 ${currentStatusMeta.accent}`}>
+                  <StatusIcon size={20} />
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-400 font-bold">Seguimiento de tu pedido</p>
+                  <h2 className={`text-lg font-black uppercase mt-1 ${currentStatusMeta.accent}`}>{currentStatusMeta.label}</h2>
+                  <p className="text-sm text-gray-300 mt-1">{currentStatusMeta.description}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-widest text-gray-500">Orden</p>
+                <p className="text-lg font-black text-white">#{trackedOrder.id}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Categorías (Pills) */}
       <div className="flex overflow-x-auto gap-3 py-6 px-4 no-scrollbar sticky top-20 z-10 bg-bg-dark/95 backdrop-blur-sm shadow-sm">
@@ -123,7 +221,7 @@ function ClientMenu() {
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent sm:hidden" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent sm:hidden" />
               </div>
             )}
 

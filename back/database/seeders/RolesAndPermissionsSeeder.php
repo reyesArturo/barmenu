@@ -20,6 +20,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'orders.kitchen.view',
             'orders.status.update',
             'orders.cashier.view',
+            'orders.cashier.pay',
             'metrics.view',
             'tables.view',
             'tables.manage',
@@ -42,6 +43,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
         $cashierRole->syncPermissions([
             'orders.cashier.view',
+            'orders.cashier.pay',
             'tables.view',
         ]);
 

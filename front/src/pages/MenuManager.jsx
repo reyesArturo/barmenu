@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 import { Edit2, Plus, UtensilsCrossed, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 function MenuManager() {
   const queryClient = useQueryClient();
-  const [activeCategory, setActiveCategory] = useState(0);
+  const [productToDelete, setProductToDelete] = useState(null);
   
   const { data: categories, isLoading } = useQuery({
     queryKey: ['menu-admin'],
@@ -22,20 +24,52 @@ function MenuManager() {
 
   // State del formulario sencillo (Oculto o Visible)
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ id: null, name: '', price: '', description: '', image_url: '', category_id: '' });
+  const [formData, setFormData] = useState({ id: null, name: '', price: '', description: '', image_url: '', imageFile: null, category_id: '' });
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
+  const [categoryQuery, setCategoryQuery] = useState('');
+
+  const categoryList = categories?.categories || [];
+  const normalizedCategoryQuery = categoryQuery.trim().toLowerCase();
+  const matchedCategory = categoryList.find(
+    (cat) => cat.name.trim().toLowerCase() === normalizedCategoryQuery,
+  );
+
+  function getImageSrc(imageUrl) {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) return imageUrl;
+    return imageUrl;
+  }
 
   const saveProductMutation = useMutation({
     mutationFn: async (data) => {
-      if(data.id) {
-        return await api.put(`/admin/products/${data.id}`, data);
-      } else {
-        return await api.post(`/admin/products`, data);
+      const payload = new FormData();
+      payload.append('category_id', String(data.category_id));
+      payload.append('name', data.name);
+      payload.append('price', String(data.price));
+      payload.append('description', data.description || '');
+      payload.append('is_available', '1');
+
+      if (data.imageFile) {
+        payload.append('image', data.imageFile);
       }
+
+      if (data.id) {
+        payload.append('_method', 'PUT');
+        return await api.post(`/admin/products/${data.id}`, payload);
+      }
+
+      return await api.post(`/admin/products`, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['menu-admin']);
+      queryClient.invalidateQueries({ queryKey: ['menu-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
       setIsFormOpen(false);
-      setFormData({ id: null, name: '', price: '', description: '', image_url: '', category_id: '' });
+      setFormData({ id: null, name: '', price: '', description: '', image_url: '', imageFile: null, category_id: '' });
+      setCategoryQuery('');
+      toast.success('Platillo guardado. El menú se actualizó correctamente.');
+    },
+    onError: (error) => {
+      toast.error(`No se pudo guardar el platillo. ${error?.response?.data?.message || 'Revisa los datos e inténtalo de nuevo.'}`);
     }
   });
 
@@ -44,28 +78,107 @@ function MenuManager() {
       await api.delete(`/admin/products/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['menu-admin']);
+      queryClient.invalidateQueries({ queryKey: ['menu-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['menu'] });
+      toast.success('Platillo eliminado. Se quitó del menú correctamente.');
+    },
+    onError: (error) => {
+      toast.error(`No se pudo eliminar el platillo. ${error?.response?.data?.message || 'Inténtalo nuevamente.'}`);
     }
   });
 
+  const createCategoryMutation = useMutation({
+    mutationFn: async (name) => {
+      const response = await api.post('/admin/categories', {
+        name,
+        is_active: true,
+      });
+
+      return response.data;
+    },
+    onSuccess: (newCategory) => {
+      queryClient.setQueryData(['menu-admin'], (currentData) => {
+        if (!currentData) return currentData;
+
+        const exists = currentData.categories.some((cat) => cat.id === newCategory.id);
+        if (exists) return currentData;
+
+        return {
+          ...currentData,
+          categories: [...currentData.categories, newCategory],
+        };
+      });
+
+      setFormData((prev) => ({ ...prev, category_id: newCategory.id }));
+      setCategoryQuery(newCategory.name);
+      toast.success(`Categoría creada: ${newCategory.name}`);
+    },
+    onError: (error) => {
+      toast.error(`No se pudo crear la categoría. ${error?.response?.data?.message || 'Inténtalo nuevamente.'}`);
+    },
+  });
+
   const handleEdit = (product) => {
-    setFormData({ ...product, category_id: product.category_id });
+    setFormData({ ...product, category_id: product.category_id, imageFile: null });
+    setCategoryQuery(product.category?.name || '');
     setIsFormOpen(true);
   };
 
   const handleDelete = (id) => {
-    if(window.confirm('¿Eliminar este platillo del menú?')) {
-      deleteProductMutation.mutate(id);
-    }
+    setProductToDelete(id);
+  };
+
+  const confirmDelete = () => {
+    if (!productToDelete) return;
+    deleteProductMutation.mutate(productToDelete, {
+      onSettled: () => {
+        setProductToDelete(null);
+      },
+    });
   };
 
   const handleSave = (e) => {
     e.preventDefault();
-    saveProductMutation.mutate({
-      ...formData,
-      is_available: true
-    });
+
+    if (!formData.category_id) {
+      toast.error('Selecciona o crea una categoría válida.');
+      return;
+    }
+
+    saveProductMutation.mutate(formData);
   };
+
+  const handleCategoryInputChange = (value) => {
+    setCategoryQuery(value);
+
+    const exactMatch = categoryList.find(
+      (cat) => cat.name.trim().toLowerCase() === value.trim().toLowerCase(),
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      category_id: exactMatch ? exactMatch.id : '',
+    }));
+  };
+
+  const handleCreateCategory = () => {
+    const name = categoryQuery.trim();
+    if (!name) return;
+    createCategoryMutation.mutate(name);
+  };
+
+  React.useEffect(() => {
+    if (formData.imageFile) {
+      const objectUrl = URL.createObjectURL(formData.imageFile);
+      setImagePreviewUrl(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+
+    setImagePreviewUrl(getImageSrc(formData.image_url) || '');
+  }, [formData.imageFile, formData.image_url]);
 
   if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando menú...</div>;
 
@@ -80,7 +193,9 @@ function MenuManager() {
         </div>
         <button 
           onClick={() => {
-            setFormData({ id: null, name: '', price: '', description: '', image_url: '', category_id: categories?.categories[0]?.id || '' });
+            const defaultCategory = categoryList[0];
+            setFormData({ id: null, name: '', price: '', description: '', image_url: '', imageFile: null, category_id: defaultCategory?.id || '' });
+            setCategoryQuery(defaultCategory?.name || '');
             setIsFormOpen(true);
           }}
           className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-colors uppercase tracking-widest active:scale-95"
@@ -105,16 +220,58 @@ function MenuManager() {
             </div>
             <div>
               <label className="block text-gray-400 text-sm font-bold mb-2">Categoría</label>
-              <select required value={formData.category_id} onChange={e => setFormData({...formData, category_id: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary">
-                <option value="">Selecciona...</option>
-                {categories?.categories.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <div className="flex gap-2">
+                <input
+                  list="category-options"
+                  value={categoryQuery}
+                  onChange={(e) => handleCategoryInputChange(e.target.value)}
+                  className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
+                  placeholder="Busca una categoría o escribe una nueva"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  disabled={!categoryQuery.trim() || !!matchedCategory || createCategoryMutation.isPending}
+                  className="btn-hover rounded-xl border border-white/10 px-4 py-3 font-bold text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {createCategoryMutation.isPending ? 'Creando...' : 'Agregar'}
+                </button>
+              </div>
+              <datalist id="category-options">
+                {categoryList.map((cat) => (
+                  <option key={cat.id} value={cat.name} />
                 ))}
-              </select>
+              </datalist>
+              <p className="text-xs text-gray-400 mt-2">
+                {matchedCategory
+                  ? `Seleccionada: ${matchedCategory.name}`
+                  : 'Si no existe, escribe el nombre y presiona Agregar.'}
+              </p>
             </div>
             <div>
-              <label className="block text-gray-400 text-sm font-bold mb-2">URL Fotografía</label>
-              <input value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="https://ejemplo.com/taco.jpg" />
+              <label className="block text-gray-400 text-sm font-bold mb-2">Imagen del platillo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setFormData({ ...formData, imageFile: e.target.files?.[0] || null })}
+                className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
+              />
+              {(formData.imageFile || formData.image_url) && (
+                <p className="text-xs text-gray-400 mt-2">
+                  {formData.imageFile ? `Archivo seleccionado: ${formData.imageFile.name}` : 'Se conservará la imagen actual si no eliges un archivo nuevo.'}
+                </p>
+              )}
+              {imagePreviewUrl && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-400 mb-2">Vista previa</p>
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Vista previa de imagen"
+                    className="w-28 h-28 object-cover rounded-xl border border-white/10"
+                  />
+                </div>
+              )}
             </div>
             <div className="md:col-span-2">
               <label className="block text-gray-400 text-sm font-bold mb-2">Descripción</label>
@@ -148,8 +305,8 @@ function MenuManager() {
             {categories?.products.map(product => (
               <tr key={product.id} className="border-t border-white/5 hover:bg-white/5 transition-colors group">
                 <td className="p-5 flex items-center gap-4">
-                  {product.image_url ? (
-                    <img src={product.image_url} className="w-12 h-12 rounded-lg object-cover border border-white/10" alt={product.name}/>
+                  {getImageSrc(product.image_url) ? (
+                    <img src={getImageSrc(product.image_url)} className="w-12 h-12 rounded-lg object-cover border border-white/10" alt={product.name}/>
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-gray-800 border border-white/10 flex items-center justify-center">
                       <UtensilsCrossed size={20} className="text-gray-500"/>
@@ -181,6 +338,17 @@ function MenuManager() {
           </tbody>
         </table>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(productToDelete)}
+        title="Eliminar platillo"
+        message="Esta acción eliminará el platillo del menú. ¿Deseas continuar?"
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+        onCancel={() => setProductToDelete(null)}
+        onConfirm={confirmDelete}
+        loading={deleteProductMutation.isPending}
+      />
 
     </div>
   );

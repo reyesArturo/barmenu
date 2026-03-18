@@ -36,6 +36,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // Rutas para la cocina
     Route::get('/kitchen/orders', [OrderController::class, 'kitchenOrders'])
         ->middleware('permission:orders.kitchen.view');
+    Route::get('/kitchen/history', [OrderController::class, 'kitchenHistory'])
+        ->middleware('permission:orders.kitchen.view');
     Route::put('/kitchen/orders/{id}/status', [OrderController::class, 'updateStatus'])
         ->middleware('permission:orders.status.update');
 
@@ -46,6 +48,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // Rutas para la caja (cobro)
     Route::get('/cashier/orders', [OrderController::class, 'cashierOrders'])
         ->middleware('permission:orders.cashier.view');
+    Route::get('/cashier/history', [OrderController::class, 'cashierHistory'])
+        ->middleware('permission:orders.cashier.view');
+    Route::put('/cashier/orders/{id}/pay', [OrderController::class, 'markAsPaid'])
+        ->middleware('permission:orders.cashier.pay');
     
     // Rutas para los QRs (Mesas)
     Route::get('/tables', [TableController::class, 'index'])->middleware('permission:tables.view');

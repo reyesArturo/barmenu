@@ -7,5 +7,15 @@ export default defineConfig({
   plugins: [tailwindcss(), react()],
   server: {
     host: true, // Permite que otros dispositivos en la red local se conecten al frontend
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/storage': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+    },
   }
 })
