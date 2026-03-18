@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #D31E1E; /* Rojo vibrante basado en "CH" */
+  --color-secondary: #FF7B00; /* Naranja basado en las alas */
+  --color-bg-dark: #121212;
+  --color-card-dark: #1E1E1E;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-dark);
+    color: white;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
