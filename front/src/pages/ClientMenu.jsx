@@ -7,7 +7,7 @@ import api from '../lib/axios';
 import { useCartStore } from '../store/cartStore';
 
 function ClientMenu() {
-  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, tableNumber, clearCart, setTable, lastOrderId, lastOrderStatus, setLastOrder } = useCartStore();
+  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, tableNumber, clearCart, setTable, setTableId, lastOrderId, lastOrderStatus, setLastOrder } = useCartStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(0);
   const { token: pathToken } = useParams();
