@@ -1,0 +1,14 @@
+[build]
+  # El directorio donde Netlify debe entrar para compilar
+  base = "front"
+  
+  # El comando para construir tu React
+  command = "npm run build"
+  
+  # La carpeta que contiene el resultado final (dist para Vite, build para CRA)
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
