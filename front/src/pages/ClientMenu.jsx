@@ -64,7 +64,7 @@ function ClientMenu() {
       const res = await api.get(`/client/table/${token}`);
       return res.data;
     },
-    enabled: !!token, 
+    enabled: !!token,
     retry: false
   });
 
@@ -129,18 +129,18 @@ function ClientMenu() {
   if (!bypass && (!token || isTokenError)) {
     return (
       <div className="min-h-screen bg-bg-dark text-white flex flex-col items-center justify-center p-6 text-center">
-         <QrCode size={80} className="text-primary mb-6 animate-pulse" />
-         <h1 className="text-3xl font-black uppercase mb-2 text-secondary">Escanea tu mesa</h1>
-         <p className="text-gray-400">Para pedir código QR de tu mesa es necesario escanearlo con la cámara de tu celular.</p>
-         {isTokenError && <p className="text-red-500 mt-4 font-bold border border-red-500/20 bg-red-500/10 p-4 rounded-xl">Código de mesa inválido o caducado.</p>}
-         
-         {/* Botón rápido para saltar el modo QR durante el desarrollo */}
-         {/* <button 
-           onClick={() => { setTableId(1); setBypass(true); }} 
-           className="mt-12 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold py-3 px-6 rounded-xl transition-colors text-sm uppercase tracking-widest"
-         >
-            Saltar y simular Mesa 1
-         </button> */}
+        <QrCode size={80} className="text-primary mb-6 animate-pulse" />
+        <h1 className="text-3xl font-black uppercase mb-2 text-secondary">Escanea tu mesa</h1>
+        <p className="text-gray-400">Para pedir código QR de tu mesa es necesario escanearlo con la cámara de tu celular.</p>
+        {isTokenError && <p className="text-red-500 mt-4 font-bold border border-red-500/20 bg-red-500/10 p-4 rounded-xl">Código de mesa inválido o caducado.</p>}
+
+        {/* Botón rápido para saltar el modo QR durante el desarrollo */}
+        <button
+          onClick={() => { setTableId(1); setBypass(true); }}
+          className="mt-12 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold py-3 px-6 rounded-xl transition-colors text-sm uppercase tracking-widest"
+        >
+          Saltar y simular Mesa 1
+        </button>
       </div>
     );
   }
@@ -156,7 +156,7 @@ function ClientMenu() {
 
   return (
     <div className="min-h-screen pb-24 bg-bg-dark text-white font-sans">
-      
+
       {/* Header Falso (Logo simulado) */}
       <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-md border-b border-primary/20 pt-6 pb-4 px-4 flex flex-col items-center">
         <h1 className="text-4xl font-black italic tracking-tighter" style={{ color: 'var(--color-primary)' }}>
@@ -197,11 +197,10 @@ function ClientMenu() {
           <button
             key={cat.id}
             onClick={() => setActiveCategory(index)}
-            className={`whitespace-nowrap px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 ${
-              activeCategory === index
+            className={`whitespace-nowrap px-6 py-2.5 rounded-full font-bold text-sm transition-all duration-300 ${activeCategory === index
                 ? 'bg-primary text-white shadow-[0_0_15px_rgba(211,30,30,0.4)]'
                 : 'bg-card-dark text-gray-400 hover:text-white border border-white/5'
-            }`}
+              }`}
           >
             {cat.name}
           </button>
@@ -212,12 +211,12 @@ function ClientMenu() {
       <main className="px-4 space-y-8">
         {categories?.[activeCategory]?.products.map(product => (
           <div key={product.id} className="bg-card-dark rounded-3xl overflow-hidden shadow-xl border border-white/5 flex flex-col sm:flex-row transition-transform hover:scale-[1.02]">
-            
+
             {/* Imagen del producto */}
             {product.image_url && (
               <div className="h-48 sm:h-auto sm:w-48 relative">
-                <img 
-                  src={product.image_url} 
+                <img
+                  src={product.image_url}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -232,8 +231,8 @@ function ClientMenu() {
                 <span className="text-xl font-bold text-secondary">${product.price}</span>
               </div>
               <p className="text-gray-400 text-sm mt-2 flex-1">{product.description}</p>
-              
-              <button 
+
+              <button
                 onClick={() => addToCart(product)}
                 className="mt-6 flex items-center justify-center gap-2 w-full bg-primary hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-colors active:scale-95"
               >
@@ -268,9 +267,9 @@ function ClientMenu() {
       {isCartOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Fondo oscuro para cerrar */}
-          <div 
-             className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-             onClick={() => setIsCartOpen(false)}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsCartOpen(false)}
           />
 
           {/* Panel Lateral */}
@@ -299,7 +298,7 @@ function ClientMenu() {
                     </div>
 
                     <div className="flex items-center gap-3 bg-black/50 rounded-full p-1 border border-white/10">
-                      <button 
+                      <button
                         onClick={() => {
                           if (item.quantity === 1) removeFromCart(item.product_id);
                           else updateQuantity(item.product_id, item.quantity - 1);
@@ -309,11 +308,11 @@ function ClientMenu() {
                         {item.quantity === 1 ? <Trash2 size={16} /> : <Minus size={16} />}
                       </button>
                       <span className="font-bold w-4 text-center">{item.quantity}</span>
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                         className="p-2 bg-card-dark rounded-full text-white hover:text-secondary transition-colors"
                       >
-                         <Plus size={16} />
+                        <Plus size={16} />
                       </button>
                     </div>
                   </div>
@@ -328,8 +327,8 @@ function ClientMenu() {
                   <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">Total a pagar</span>
                   <span className="text-4xl font-black text-white">${getCartTotal().toFixed(2)}</span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={handleCheckout}
                   className="w-full bg-primary hover:bg-red-700 text-white font-black uppercase tracking-widest py-5 rounded-2xl shadow-[0_0_20px_rgba(211,30,30,0.4)] transition-all active:scale-95"
                 >
