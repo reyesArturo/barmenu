@@ -10,7 +10,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'kitchen', 'cashier') NOT NULL DEFAULT 'kitchen'");
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
+            DB::statement("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'kitchen', 'cashier'))");
+            DB::statement("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'kitchen'");
+            DB::statement("ALTER TABLE users ALTER COLUMN role SET NOT NULL");
+
+            return;
+        }
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'kitchen', 'cashier') NOT NULL DEFAULT 'kitchen'");
+
+            return;
+        }
+
+        throw new RuntimeException("Unsupported database driver for role migration: {$driver}");
     }
 
     /**
@@ -19,6 +36,24 @@ return new class extends Migration
     public function down(): void
     {
         DB::statement("UPDATE users SET role = 'kitchen' WHERE role = 'cashier'");
-        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'kitchen') NOT NULL DEFAULT 'kitchen'");
+
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            DB::statement("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
+            DB::statement("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('admin', 'kitchen'))");
+            DB::statement("ALTER TABLE users ALTER COLUMN role SET DEFAULT 'kitchen'");
+            DB::statement("ALTER TABLE users ALTER COLUMN role SET NOT NULL");
+
+            return;
+        }
+
+        if ($driver === 'mysql') {
+            DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'kitchen') NOT NULL DEFAULT 'kitchen'");
+
+            return;
+        }
+
+        throw new RuntimeException("Unsupported database driver for role migration: {$driver}");
     }
 };
