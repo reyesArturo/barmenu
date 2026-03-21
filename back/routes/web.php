@@ -9,5 +9,6 @@ Route::get('/', function () {
 
 Route::get('/deploy-migrate', function () {
     Artisan::call('migrate --force');
-    return "Tablas creadas con éxito: " . Artisan::output();
+    Artisan::call('db:seed');
+    return "Tablas creadas y seeders ejecutados con éxito: " . Artisan::output();
 });
