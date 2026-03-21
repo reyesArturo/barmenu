@@ -92,8 +92,22 @@ function QRManager() {
 
   if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando las mesas...</div>;
 
-  // URL base: usa la var de entorno si existe, o el origin actual como fallback.
-  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  // URL base para QR: normaliza VITE_APP_URL para evitar duplicar /cliente en el link final.
+  const baseUrl = (() => {
+    const raw = import.meta.env.VITE_APP_URL?.trim();
+    if (!raw) return window.location.origin;
+
+    try {
+      const parsed = new URL(raw);
+      const normalizedPath = parsed.pathname
+        .replace(/\/cliente\/?$/i, '')
+        .replace(/\/$/, '');
+
+      return `${parsed.origin}${normalizedPath}`;
+    } catch {
+      return window.location.origin;
+    }
+  })();
 
   return (
     <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
