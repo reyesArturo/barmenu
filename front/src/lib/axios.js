@@ -2,12 +2,13 @@ import axios from 'axios';
 
 const envApiUrl = import.meta.env.VITE_API_URL?.trim();
 const isDev = import.meta.env.DEV;
+const productionFallbackApiUrl = 'https://barmenu.onrender.com/api';
 
-// In dev we rely on Vite proxy (/api). In production, missing VITE_API_URL falls back to same-origin /api, never localhost.
-const baseURL = envApiUrl || (isDev ? '/api' : `${window.location.origin}/api`);
+// In dev we rely on Vite proxy (/api). In production, missing VITE_API_URL falls back to Render backend.
+const baseURL = envApiUrl || (isDev ? '/api' : productionFallbackApiUrl);
 
 if (!envApiUrl && !isDev) {
-    console.warn('VITE_API_URL is not defined. Using same-origin fallback:', baseURL);
+    console.warn('VITE_API_URL is not defined. Using production fallback:', baseURL);
 }
 
 const api = axios.create({
