@@ -205,88 +205,117 @@ function MenuManager() {
       </header>
 
       {isFormOpen && (
-        <div className="bg-card-dark border border-white/5 rounded-2xl p-6 mb-8 shadow-2xl">
-          <h2 className="text-2xl font-bold uppercase mb-4 text-primary">
-            {formData.id ? 'Editar Platillo' : 'Crear Platillo'}
-          </h2>
-          <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-400 text-sm font-bold mb-2">Nombre del Platillo</label>
-              <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="Taco al pastor" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => !saveProductMutation.isPending && setIsFormOpen(false)}
+            aria-label="Cerrar modal"
+          />
+
+          <div className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto bg-card-dark border border-white/10 rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h2 className="text-2xl font-bold uppercase text-primary">
+                {formData.id ? 'Editar Platillo' : 'Crear Platillo'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                disabled={saveProductMutation.isPending}
+                className="rounded-xl border border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-gray-300 hover:bg-white/5 disabled:opacity-60"
+              >
+                Cerrar
+              </button>
             </div>
-            <div>
-              <label className="block text-gray-400 text-sm font-bold mb-2">Precio ($)</label>
-              <input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="25.00" />
-            </div>
-            <div>
-              <label className="block text-gray-400 text-sm font-bold mb-2">Categoría</label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  list="category-options"
-                  value={categoryQuery}
-                  onChange={(e) => handleCategoryInputChange(e.target.value)}
-                  className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
-                  placeholder="Busca una categoría o escribe una nueva"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={handleCreateCategory}
-                  disabled={!categoryQuery.trim() || !!matchedCategory || createCategoryMutation.isPending}
-                  className="btn-hover rounded-xl border border-white/10 px-4 py-3 font-bold text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {createCategoryMutation.isPending ? 'Creando...' : 'Agregar'}
-                </button>
+
+            <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Nombre del Platillo</label>
+                <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="Taco al pastor" />
               </div>
-              <datalist id="category-options">
-                {categoryList.map((cat) => (
-                  <option key={cat.id} value={cat.name} />
-                ))}
-              </datalist>
-              <p className="text-xs text-gray-400 mt-2">
-                {matchedCategory
-                  ? `Seleccionada: ${matchedCategory.name}`
-                  : 'Si no existe, escribe el nombre y presiona Agregar.'}
-              </p>
-            </div>
-            <div>
-              <label className="block text-gray-400 text-sm font-bold mb-2">Imagen del platillo</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={e => setFormData({ ...formData, imageFile: e.target.files?.[0] || null })}
-                className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
-              />
-              {(formData.imageFile || formData.image_url) && (
-                <p className="text-xs text-gray-400 mt-2">
-                  {formData.imageFile ? `Archivo seleccionado: ${formData.imageFile.name}` : 'Se conservará la imagen actual si no eliges un archivo nuevo.'}
-                </p>
-              )}
-              {imagePreviewUrl && (
-                <div className="mt-3">
-                  <p className="text-xs text-gray-400 mb-2">Vista previa</p>
-                  <img
-                    src={imagePreviewUrl}
-                    alt="Vista previa de imagen"
-                    className="w-28 h-28 object-cover rounded-xl border border-white/10"
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Precio ($)</label>
+                <input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="25.00" />
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Categoría</label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    list="category-options"
+                    value={categoryQuery}
+                    onChange={(e) => handleCategoryInputChange(e.target.value)}
+                    className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
+                    placeholder="Busca una categoría o escribe una nueva"
+                    required
                   />
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={!categoryQuery.trim() || !!matchedCategory || createCategoryMutation.isPending}
+                    className="btn-hover rounded-xl border border-white/10 px-4 py-3 font-bold text-white hover:bg-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {createCategoryMutation.isPending ? 'Creando...' : 'Agregar'}
+                  </button>
                 </div>
-              )}
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-gray-400 text-sm font-bold mb-2">Descripción</label>
-              <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="Ingredientes del platillo..." />
-            </div>
-            
-            <div className="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-4 border-t border-white/10 pt-4">
-               <button type="button" onClick={() => setIsFormOpen(false)} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold uppercase text-white transition-colors">
-                 Cancelar
-               </button>
-               <button type="submit" className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold uppercase tracking-widest text-white transition-colors shadow-[0_0_15px_rgba(22,163,74,0.3)]">
-                 Guardar Platillo
-               </button>
-            </div>
-          </form>
+                <datalist id="category-options">
+                  {categoryList.map((cat) => (
+                    <option key={cat.id} value={cat.name} />
+                  ))}
+                </datalist>
+                <p className="text-xs text-gray-400 mt-2">
+                  {matchedCategory
+                    ? `Seleccionada: ${matchedCategory.name}`
+                    : 'Si no existe, escribe el nombre y presiona Agregar.'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-gray-400 text-sm font-bold mb-2">Imagen del platillo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => setFormData({ ...formData, imageFile: e.target.files?.[0] || null })}
+                  className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary"
+                />
+                {(formData.imageFile || formData.image_url) && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    {formData.imageFile ? `Archivo seleccionado: ${formData.imageFile.name}` : 'Se conservará la imagen actual si no eliges un archivo nuevo.'}
+                  </p>
+                )}
+                {imagePreviewUrl && (
+                  <div className="mt-3">
+                    <p className="text-xs text-gray-400 mb-2">Vista previa</p>
+                    <img
+                      src={imagePreviewUrl}
+                      alt="Vista previa de imagen"
+                      className="w-28 h-28 object-cover rounded-xl border border-white/10"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-gray-400 text-sm font-bold mb-2">Descripción</label>
+                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="Ingredientes del platillo..." />
+              </div>
+              
+              <div className="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-4 border-t border-white/10 pt-4">
+                 <button
+                   type="button"
+                   onClick={() => setIsFormOpen(false)}
+                   disabled={saveProductMutation.isPending}
+                   className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold uppercase text-white transition-colors disabled:opacity-60"
+                 >
+                   Cancelar
+                 </button>
+                 <button
+                   type="submit"
+                   disabled={saveProductMutation.isPending}
+                   className="px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold uppercase tracking-widest text-white transition-colors shadow-[0_0_15px_rgba(22,163,74,0.3)] disabled:opacity-60 disabled:cursor-not-allowed"
+                 >
+                   {saveProductMutation.isPending ? 'Guardando...' : 'Guardar Platillo'}
+                 </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
