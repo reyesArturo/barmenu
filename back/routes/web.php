@@ -12,3 +12,11 @@ Route::middleware(['auth', 'role:admin'])->get('/deploy-migrate', function () {
     Artisan::call('db:seed --force');
     return "Tablas creadas y seeders ejecutados con exito: " . Artisan::output();
 });
+
+Route::middleware(['auth', 'role:admin'])->get('/deploy-storage-link', function () {
+    Artisan::call('storage:link');
+
+    return "Storage link ejecutado: " . Artisan::output();
+});
+
+
