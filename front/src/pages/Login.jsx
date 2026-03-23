@@ -71,7 +71,10 @@ function Login() {
   return (
     <div className="min-h-screen bg-[#0b0c10] text-white flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-[#131620] border border-white/10 rounded-2xl shadow-2xl p-8">
-        <h1 className="text-3xl font-black text-center uppercase tracking-wide text-[#ff6f00]">Login</h1>
+        <div className="flex flex-col items-center">
+          <img src="/ch.jpg" alt="CH V" className="h-12 w-auto object-contain" />
+          <h1 className="mt-4 text-2xl font-black text-center uppercase tracking-wide text-[#ff6f00]">Iniciar sesión</h1>
+        </div>
 
         <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
           <div>

@@ -184,6 +184,7 @@ function ClientMenu() {
   const currentStatusMeta = currentStatus ? statusMeta[currentStatus] : null;
   const StatusIcon = currentStatusMeta?.icon || BellRing;
   const trackedOrderTotal = Number(trackedOrder?.total_amount || 0);
+  const activeProducts = categories?.[activeCategory]?.products ?? [];
 
   return (
     <div className="min-h-screen pb-24 bg-bg-dark text-white font-sans">
@@ -273,39 +274,47 @@ function ClientMenu() {
 
       {/* Lista de Productos */}
       <main className="px-4 space-y-8">
-        {categories?.[activeCategory]?.products.map(product => (
-          <div key={product.id} className="bg-card-dark rounded-3xl overflow-hidden shadow-xl border border-white/5 flex flex-col sm:flex-row transition-transform hover:scale-[1.02]">
-
-            {/* Imagen del producto */}
-            {product.image_url && (
-              <div className="h-48 sm:h-auto sm:w-48 relative">
-                <img
-                  src={product.image_url}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent sm:hidden" />
-              </div>
-            )}
-
-            {/* Info */}
-            <div className="p-5 flex-1 flex flex-col">
-              <div className="flex justify-between items-start">
-                <h3 className="text-xl font-bold uppercase tracking-tight">{product.name}</h3>
-                <span className="text-xl font-bold text-secondary">${product.price}</span>
-              </div>
-              <p className="text-gray-400 text-sm mt-2 flex-1">{product.description}</p>
-
-              <button
-                onClick={() => addToCart(product)}
-                className="mt-6 flex items-center justify-center gap-2 w-full bg-primary hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-colors active:scale-95"
-              >
-                <Plus size={20} />
-                Agregar a mi cuenta
-              </button>
-            </div>
+        {activeProducts.length === 0 ? (
+          <div className="bg-card-dark rounded-3xl border border-white/5 p-8 text-center flex flex-col items-center gap-3">
+            <UtensilsCrossed size={36} className="text-gray-500" />
+            <h3 className="text-lg font-black uppercase text-white">Sin productos en esta categoria</h3>
+            <p className="text-sm text-gray-400">Prueba otra categoria para ver mas opciones del menu.</p>
           </div>
-        ))}
+        ) : (
+          activeProducts.map(product => (
+            <div key={product.id} className="bg-card-dark rounded-3xl overflow-hidden shadow-xl border border-white/5 flex flex-col sm:flex-row transition-transform hover:scale-[1.02]">
+
+              {/* Imagen del producto */}
+              {product.image_url && (
+                <div className="h-48 sm:h-auto sm:w-48 relative">
+                  <img
+                    src={product.image_url}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent sm:hidden" />
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="p-5 flex-1 flex flex-col">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-bold uppercase tracking-tight">{product.name}</h3>
+                  <span className="text-xl font-bold text-secondary">${product.price}</span>
+                </div>
+                <p className="text-gray-400 text-sm mt-2 flex-1">{product.description}</p>
+
+                <button
+                  onClick={() => addToCart(product)}
+                  className="mt-6 flex items-center justify-center gap-2 w-full bg-primary hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-colors active:scale-95"
+                >
+                  <Plus size={20} />
+                  Agregar a mi cuenta
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </main>
 
       {/* Botón flotante del carrito */}
