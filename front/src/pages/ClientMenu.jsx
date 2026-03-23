@@ -190,9 +190,7 @@ function ClientMenu() {
 
       {/* Header Falso (Logo simulado) */}
       <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-md border-b border-primary/20 pt-6 pb-4 px-4 flex flex-col items-center">
-        <h1 className="text-4xl font-black italic tracking-tighter" style={{ color: 'var(--color-primary)' }}>
-          CH<span style={{ color: 'var(--color-secondary)' }}> V</span>
-        </h1>
+        <img src="/ch.jpg" alt="CH V" className="h-12 w-auto object-contain" />
         <p className="text-sm text-gray-400 mt-1 uppercase tracking-widest font-semibold flex items-center gap-2">
           <UtensilsCrossed size={14} className="text-secondary" />
           {tableLabel}
