@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingBag, Plus, Minus, X, Trash2, UtensilsCrossed, QrCode, BellRing, Clock3, ChefHat, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, X, Trash2, UtensilsCrossed, QrCode, BellRing, Clock3, ChefHat, CheckCircle2, ReceiptText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../lib/axios';
 import { useCartStore } from '../store/cartStore';
@@ -168,6 +168,7 @@ function ClientMenu() {
   const currentStatus = trackedOrder?.status || lastOrderStatus;
   const currentStatusMeta = currentStatus ? statusMeta[currentStatus] : null;
   const StatusIcon = currentStatusMeta?.icon || BellRing;
+  const trackedOrderTotal = Number(trackedOrder?.total_amount || 0);
 
   return (
     <div className="min-h-screen pb-24 bg-bg-dark text-white font-sans">
@@ -204,6 +205,41 @@ function ClientMenu() {
             </div>
           </div>
         </div>
+      )}
+
+      {trackedOrder?.items?.length > 0 && (
+        <section className="px-4 pt-4">
+          <div className="border border-white/10 bg-card-dark rounded-2xl p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm uppercase tracking-[0.2em] text-gray-300 font-black flex items-center gap-2">
+                <ReceiptText size={16} className="text-secondary" />
+                Tu ultimo pedido
+              </h2>
+              <p className="text-xs text-gray-500 font-bold">Orden #{trackedOrder.id}</p>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {trackedOrder.items.map((item, index) => (
+                <div key={`${item.id || item.product_id || index}-${index}`} className="flex items-start justify-between gap-3 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                  <div>
+                    <p className="text-sm font-bold text-white">
+                      {item.quantity}x {item.product?.name || 'Producto eliminado'}
+                    </p>
+                    {item.notes && <p className="text-xs text-gray-400 mt-0.5">Nota: {item.notes}</p>}
+                  </div>
+                  <p className="text-sm font-black text-secondary">
+                    ${Number(item.subtotal || (item.unit_price * item.quantity) || 0).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Total</p>
+              <p className="text-xl font-black text-white">${trackedOrderTotal.toFixed(2)}</p>
+            </div>
+          </div>
+        </section>
       )}
 
       {/* Categorías (Pills) */}

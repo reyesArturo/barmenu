@@ -92,26 +92,36 @@ function QRManager() {
 
   if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center px-4 text-center">Cargando las mesas...</div>;
 
-  // URL base para QR: en desarrollo forzamos el origen actual para no mezclar
-  // tokens locales con dominios de produccion.
-  const baseUrl = (() => {
-    if (import.meta.env.DEV) {
-      return window.location.origin;
-    }
-
-    const raw = import.meta.env.VITE_APP_URL?.trim();
-    if (!raw) return window.location.origin;
+  const normalizeBaseUrl = (rawUrl) => {
+    if (!rawUrl) return null;
 
     try {
-      const parsed = new URL(raw);
+      const parsed = new URL(rawUrl);
       const normalizedPath = parsed.pathname
         .replace(/\/cliente\/?$/i, '')
         .replace(/\/$/, '');
 
       return `${parsed.origin}${normalizedPath}`;
     } catch {
+      return null;
+    }
+  };
+
+  // URL base para QR:
+  // - En desarrollo, prioriza VITE_APP_URL para poder escanear desde celular.
+  // - Si no existe, usa el origen actual (util para pruebas en misma maquina).
+  const baseUrl = (() => {
+    const envBaseUrl = normalizeBaseUrl(import.meta.env.VITE_APP_URL?.trim());
+
+    if (import.meta.env.DEV) {
+      if (envBaseUrl) {
+        return envBaseUrl;
+      }
+
       return window.location.origin;
     }
+
+    return envBaseUrl || window.location.origin;
   })();
 
   return (
@@ -123,6 +133,7 @@ function QRManager() {
           </h1>
           <p className="text-gray-400 mt-2 text-sm sm:text-base">Imprímelos y colócalos en las mesas. Al escanearlos, el cliente tendrá la mesa asignada.</p>
           <p className="text-xs text-gray-500 mt-1">Mesas actuales: {tables?.length ?? 0}</p>
+          <p className="text-xs text-gray-500 mt-1 break-all">Base de QR: {baseUrl}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:flex xl:flex-wrap items-stretch xl:items-center w-full xl:w-auto gap-3">
           <div className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 sm:col-span-2 xl:col-span-1">
