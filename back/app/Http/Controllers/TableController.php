@@ -22,9 +22,16 @@ class TableController extends Controller
 
         $count = (int) $data['count'];
         $maxMesaNumber = Table::query()
-            ->selectRaw("MAX(CAST(SUBSTRING(number, 6) AS UNSIGNED)) as max_number")
             ->where('number', 'like', 'Mesa %')
-            ->value('max_number');
+            ->pluck('number')
+            ->map(function (string $number): int {
+                if (preg_match('/^Mesa\s+(\d+)$/i', trim($number), $matches)) {
+                    return (int) $matches[1];
+                }
+
+                return 0;
+            })
+            ->max();
 
         $nextNumber = ((int) $maxMesaNumber) + 1;
         $created = [];

@@ -107,8 +107,15 @@ function ClientMenu() {
     try {
       if (items.length === 0) return;
 
+      const checkoutTableId = tableData?.id ?? tableId;
+
+      if (!checkoutTableId) {
+        toast.error('No hay una mesa valida asignada. Escanea nuevamente el QR de tu mesa.');
+        return;
+      }
+
       const { data } = await api.post('/client/orders', {
-        table_id: tableId,
+        table_id: checkoutTableId,
         items: items
       });
 
@@ -119,6 +126,14 @@ function ClientMenu() {
       setIsCartOpen(false);
 
     } catch (err) {
+      const message = err?.response?.data?.message;
+
+      if (message?.toLowerCase().includes('table id is invalid')) {
+        setTable(null);
+        toast.error('La mesa ya no existe o fue reiniciada. Escanea de nuevo el QR de tu mesa.');
+        return;
+      }
+
       toast.error('No se pudo enviar el pedido. Por favor avisa a tu mesero.');
       console.error(err);
     }
@@ -136,7 +151,7 @@ function ClientMenu() {
 
         {/* Botón rápido para saltar el modo QR durante el desarrollo */}
         <button
-          onClick={() => { setTableId(1); setBypass(true); }}
+          onClick={() => { setTableId(null); setBypass(true); }}
           className="mt-12 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 font-bold py-3 px-6 rounded-xl transition-colors text-sm uppercase tracking-widest"
         >
           Saltar y simular Mesa 1

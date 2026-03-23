@@ -181,6 +181,10 @@ class OrderController extends Controller
             })
             ->values();
 
+        $monthExpression = DB::connection()->getDriverName() === 'pgsql'
+            ? 'EXTRACT(MONTH FROM orders.created_at)'
+            : 'MONTH(orders.created_at)';
+
         $monthlyProductSalesRows = OrderItem::query()
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->join('products', 'products.id', '=', 'order_items.product_id')
@@ -189,11 +193,17 @@ class OrderController extends Controller
             ->select(
                 'order_items.product_id',
                 'products.name',
-                DB::raw('MONTH(orders.created_at) as month_number'),
+                DB::raw("{$monthExpression} as month_number"),
                 DB::raw('SUM(order_items.quantity) as total_quantity')
             )
-            ->groupBy('order_items.product_id', 'products.name', DB::raw('MONTH(orders.created_at)'))
-            ->get();
+            ->groupBy('order_items.product_id', 'products.name', DB::raw($monthExpression))
+            ->get()
+            ->map(function ($row) {
+                $row->month_number = (int) $row->month_number;
+                $row->total_quantity = (int) $row->total_quantity;
+
+                return $row;
+            });
 
         $topMonthlyProducts = $monthlyProductSalesRows
             ->groupBy('product_id')
