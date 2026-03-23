@@ -7,7 +7,7 @@ import api from '../lib/axios';
 import { useCartStore } from '../store/cartStore';
 
 function ClientMenu() {
-  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, tableNumber, clearCart, setTable, setTableId, lastOrderId, lastOrderStatus, setLastOrder } = useCartStore();
+  const { items, addToCart, removeFromCart, updateQuantity, getCartTotal, tableId, tableNumber, clearCart, setTable, setTableId, lastOrderId, lastOrderStatus, lastOrderTableId, setLastOrder, clearLastOrder } = useCartStore();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState(0);
   const { token: pathToken } = useParams();
@@ -82,6 +82,8 @@ function ClientMenu() {
     refetchOnWindowFocus: true,
   });
 
+  const currentTableId = tableData?.id ?? tableId ?? null;
+
   useEffect(() => {
     if (tableData) {
       setTable(tableData);
@@ -89,7 +91,20 @@ function ClientMenu() {
   }, [tableData, setTable]);
 
   useEffect(() => {
+    if (!currentTableId || !lastOrderTableId) return;
+
+    if (currentTableId !== lastOrderTableId) {
+      clearLastOrder();
+    }
+  }, [currentTableId, lastOrderTableId, clearLastOrder]);
+
+  useEffect(() => {
     if (!trackedOrder) return;
+
+    if (trackedOrder.status === 'paid') {
+      clearLastOrder();
+      return;
+    }
 
     if (trackedOrder.status !== lastOrderStatus) {
       const current = statusMeta[trackedOrder.status];

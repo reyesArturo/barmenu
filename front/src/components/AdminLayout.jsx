@@ -54,9 +54,7 @@ const AdminLayout = () => {
       {/* Sidebar Lateral */}
       <aside className={`w-72 max-w-[86vw] md:w-64 admin-sidebar border-r border-white/5 flex flex-col print:hidden fixed md:static inset-y-0 left-0 z-40 transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
-          <h1 className="text-3xl font-black italic tracking-tighter text-[#E53935]">
-            CH<span className="text-[#FF9800]"> V</span>
-          </h1>
+          <img src="/ch.jpg" alt="CH V" className="h-10 w-auto object-contain" />
           <span className="text-[10px] bg-white/10 px-2 py-1 rounded uppercase font-bold tracking-widest text-gray-400">{roleLabel}</span>
           <button
             type="button"

@@ -12,6 +12,7 @@ function getStoredClientState() {
                 lastOrderId: null,
                 lastOrderStatus: null,
                 lastOrderUpdatedAt: null,
+                lastOrderTableId: null,
             };
         }
 
@@ -22,6 +23,7 @@ function getStoredClientState() {
             lastOrderId: parsed.lastOrderId ?? null,
             lastOrderStatus: parsed.lastOrderStatus ?? null,
             lastOrderUpdatedAt: parsed.lastOrderUpdatedAt ?? null,
+            lastOrderTableId: parsed.lastOrderTableId ?? null,
         };
     } catch {
         return {
@@ -30,6 +32,7 @@ function getStoredClientState() {
             lastOrderId: null,
             lastOrderStatus: null,
             lastOrderUpdatedAt: null,
+            lastOrderTableId: null,
         };
     }
 }
@@ -41,6 +44,7 @@ function saveClientState(state) {
         lastOrderId: state.lastOrderId,
         lastOrderStatus: state.lastOrderStatus,
         lastOrderUpdatedAt: state.lastOrderUpdatedAt,
+        lastOrderTableId: state.lastOrderTableId,
     }));
 }
 
@@ -51,6 +55,7 @@ export const useCartStore = create((set, get) => ({
     lastOrderId: getStoredClientState().lastOrderId,
     lastOrderStatus: getStoredClientState().lastOrderStatus,
     lastOrderUpdatedAt: getStoredClientState().lastOrderUpdatedAt,
+    lastOrderTableId: getStoredClientState().lastOrderTableId,
 
     setTableId: (id) => set((state) => {
         const nextState = { ...state, tableId: id };
@@ -75,12 +80,14 @@ export const useCartStore = create((set, get) => ({
             lastOrderId: order?.id ?? null,
             lastOrderStatus: order?.status ?? null,
             lastOrderUpdatedAt: order?.updated_at ?? null,
+            lastOrderTableId: order?.table_id ?? null,
         };
         saveClientState(nextState);
         return {
             lastOrderId: order?.id ?? null,
             lastOrderStatus: order?.status ?? null,
             lastOrderUpdatedAt: order?.updated_at ?? null,
+            lastOrderTableId: order?.table_id ?? null,
         };
     }),
     clearLastOrder: () => set((state) => {
@@ -89,12 +96,14 @@ export const useCartStore = create((set, get) => ({
             lastOrderId: null,
             lastOrderStatus: null,
             lastOrderUpdatedAt: null,
+            lastOrderTableId: null,
         };
         saveClientState(nextState);
         return {
             lastOrderId: null,
             lastOrderStatus: null,
             lastOrderUpdatedAt: null,
+            lastOrderTableId: null,
         };
     }),
 
