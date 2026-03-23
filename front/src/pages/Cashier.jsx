@@ -106,14 +106,14 @@ function Cashier() {
     payMutation.mutate({ orderId: orderToConfirm.id });
   };
 
-  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Abriendo la caja registradora...</div>;
-  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center">Error al cargar o no tienes sesión activa.</div>;
+  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center px-4 text-center">Abriendo la caja registradora...</div>;
+  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center px-4 text-center">Error al cargar o no tienes sesión activa.</div>;
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
-      <header className="mb-8 flex justify-between items-center border-b border-white/10 pb-4">
+    <div className="min-h-screen bg-bg-dark text-white p-4 sm:p-6 font-sans">
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
-          <h1 className="text-4xl font-black uppercase text-green-500 flex items-center gap-3">
+          <h1 className="text-2xl sm:text-4xl font-black uppercase text-green-500 flex items-center gap-3">
             <Calculator size={36} /> La Caja
           </h1>
           <p className="text-gray-400 font-bold tracking-widest uppercase text-sm mt-2">Cuentas por cobrar</p>

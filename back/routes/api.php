@@ -34,10 +34,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     });
 
     // Rutas para la cocina
-    Route::get('/kitchen/orders', [OrderController::class, 'kitchenOrders'])
-        ->middleware('permission:orders.kitchen.view');
-    Route::get('/kitchen/history', [OrderController::class, 'kitchenHistory'])
-        ->middleware('permission:orders.kitchen.view');
+    Route::middleware('permission:orders.kitchen.view')->group(function () {
+        Route::get('/kitchen/orders', [OrderController::class, 'kitchenOrders']);
+        Route::get('/kitchen/history', [OrderController::class, 'kitchenHistory']);
+    });
+
     Route::put('/kitchen/orders/{id}/status', [OrderController::class, 'updateStatus'])
         ->middleware('permission:orders.status.update');
 
@@ -46,19 +47,25 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         ->middleware('permission:metrics.view');
 
     // Rutas para la caja (cobro)
-    Route::get('/cashier/orders', [OrderController::class, 'cashierOrders'])
-        ->middleware('permission:orders.cashier.view');
-    Route::get('/cashier/history', [OrderController::class, 'cashierHistory'])
-        ->middleware('permission:orders.cashier.view');
+    Route::middleware('permission:orders.cashier.view')->group(function () {
+        Route::get('/cashier/orders', [OrderController::class, 'cashierOrders']);
+        Route::get('/cashier/history', [OrderController::class, 'cashierHistory']);
+    });
+
     Route::put('/cashier/orders/{id}/pay', [OrderController::class, 'markAsPaid'])
         ->middleware('permission:orders.cashier.pay');
     
     // Rutas para los QRs (Mesas)
     Route::get('/tables', [TableController::class, 'index'])->middleware('permission:tables.view');
-    Route::post('/tables/generate', [TableController::class, 'generate'])->middleware('permission:tables.manage');
-    Route::post('/tables/reset', [TableController::class, 'reset'])->middleware('permission:tables.manage');
+
+    Route::middleware('permission:tables.manage')->group(function () {
+        Route::post('/tables/generate', [TableController::class, 'generate']);
+        Route::post('/tables/reset', [TableController::class, 'reset']);
+    });
 
     // CRUD para administrar menú
-    Route::apiResource('categories', CategoryController::class)->middleware('permission:menu.manage');
-    Route::apiResource('products', ProductController::class)->middleware('permission:menu.manage');
+    Route::middleware('permission:menu.manage')->group(function () {
+        Route::apiResource('categories', CategoryController::class);
+        Route::apiResource('products', ProductController::class);
+    });
 });

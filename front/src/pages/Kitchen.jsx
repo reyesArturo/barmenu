@@ -47,19 +47,19 @@ function Kitchen() {
     updateStatusMutation.mutate({ orderId: order.id, status: nextStatus });
   };
 
-  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando comandas...</div>;
-  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center">Error al cargar o no tienes permisos en cocina.</div>;
+  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center px-4 text-center">Cargando comandas...</div>;
+  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center px-4 text-center">Error al cargar o no tienes permisos en cocina.</div>;
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
-      <header className="mb-8 flex justify-between items-center border-b border-white/10 pb-4">
+    <div className="min-h-screen bg-bg-dark text-white p-4 sm:p-6 font-sans">
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
-          <h1 className="text-4xl font-black uppercase text-secondary flex items-center gap-3">
+          <h1 className="text-2xl sm:text-4xl font-black uppercase text-secondary flex items-center gap-3">
             <ChefHat size={36} /> Órdenes en Cocina
           </h1>
           <p className="text-gray-400 font-bold tracking-widest uppercase text-sm mt-2">Visión de Chef</p>
         </div>
-        <div className="bg-primary/20 text-primary px-4 py-2 rounded-full font-bold">
+        <div className="bg-primary/20 text-primary px-4 py-2 rounded-full font-bold self-start sm:self-auto">
           {orders?.length || 0} Activas
         </div>
       </header>

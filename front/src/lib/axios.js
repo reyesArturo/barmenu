@@ -43,4 +43,26 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error?.response?.status;
+        const requestUrl = String(error?.config?.url || '');
+        const isLoginRequest = requestUrl.includes('/login');
+        const isAdminRequest = requestUrl.includes('/admin/');
+
+        // Si el token expiro o no es valido en una llamada administrativa,
+        // limpiamos sesion local y forzamos regreso al login.
+        if (status === 401 && isAdminRequest && !isLoginRequest) {
+            localStorage.removeItem('rb_auth');
+
+            if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+                window.location.assign('/login');
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 export default api;

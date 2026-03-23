@@ -180,16 +180,16 @@ function MenuManager() {
     setImagePreviewUrl(getImageSrc(formData.image_url) || '');
   }, [formData.imageFile, formData.image_url]);
 
-  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando menú...</div>;
+  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center px-4 text-center">Cargando menú...</div>;
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
-      <header className="mb-8 flex justify-between items-center border-b border-white/10 pb-4">
+    <div className="min-h-screen bg-bg-dark text-white p-4 sm:p-6 font-sans">
+      <header className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-white/10 pb-4">
         <div>
-          <h1 className="text-3xl font-black uppercase flex items-center gap-3 text-secondary">
+          <h1 className="text-2xl sm:text-3xl font-black uppercase flex items-center gap-3 text-secondary">
             <UtensilsCrossed size={30} /> Editor del Menú
           </h1>
-          <p className="text-gray-400 mt-2 font-bold tracking-wider text-sm uppercase">Administra los platillos y precios de tu restaurante.</p>
+          <p className="text-gray-400 mt-2 font-bold tracking-wider text-xs sm:text-sm uppercase">Administra los platillos y precios de tu restaurante.</p>
         </div>
         <button 
           onClick={() => {
@@ -198,7 +198,7 @@ function MenuManager() {
             setCategoryQuery(defaultCategory?.name || '');
             setIsFormOpen(true);
           }}
-          className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-colors uppercase tracking-widest active:scale-95"
+          className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-4 sm:px-6 rounded-xl flex items-center justify-center gap-2 transition-colors uppercase tracking-widest active:scale-95 w-full sm:w-auto"
         >
           <Plus size={20} /> Nuevo Platillo
         </button>
@@ -220,7 +220,7 @@ function MenuManager() {
             </div>
             <div>
               <label className="block text-gray-400 text-sm font-bold mb-2">Categoría</label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   list="category-options"
                   value={categoryQuery}
@@ -278,7 +278,7 @@ function MenuManager() {
               <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-bg-dark text-white border border-white/10 rounded-xl p-3 focus:outline-none focus:border-secondary" placeholder="Ingredientes del platillo..." />
             </div>
             
-            <div className="md:col-span-2 flex justify-end gap-3 mt-4 border-t border-white/10 pt-4">
+            <div className="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-4 border-t border-white/10 pt-4">
                <button type="button" onClick={() => setIsFormOpen(false)} className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-bold uppercase text-white transition-colors">
                  Cancelar
                </button>
@@ -290,8 +290,40 @@ function MenuManager() {
         </div>
       )}
 
+      {/* Vista móvil: cards */}
+      <div className="md:hidden space-y-3">
+        {categories?.products.map(product => (
+          <article key={product.id} className="bg-card-dark border border-white/10 rounded-2xl p-4">
+            <div className="flex items-start gap-3">
+              {getImageSrc(product.image_url) ? (
+                <img src={getImageSrc(product.image_url)} className="w-14 h-14 rounded-lg object-cover border border-white/10" alt={product.name}/>
+              ) : (
+                <div className="w-14 h-14 rounded-lg bg-gray-800 border border-white/10 flex items-center justify-center">
+                  <UtensilsCrossed size={20} className="text-gray-500"/>
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-base uppercase tracking-wide truncate">{product.name}</h4>
+                <p className="text-xs text-gray-400 mt-1 line-clamp-2">{product.description}</p>
+                <p className="text-xs text-gray-400 mt-2 uppercase tracking-wider">{product.category?.name || 'Snack'}</p>
+              </div>
+              <p className="text-secondary font-black text-lg">${product.price}</p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button onClick={() => handleEdit(product)} className="p-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-white shadow-md flex items-center justify-center gap-2">
+                <Edit2 size={16} /> Editar
+              </button>
+              <button onClick={() => handleDelete(product.id)} className="p-2 bg-red-600 hover:bg-red-500 rounded-xl text-white shadow-md flex items-center justify-center gap-2">
+                <Trash2 size={16} /> Eliminar
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+
       {/* Listado de Platillos estilo tabla moderna */}
-      <div className="bg-card-dark border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+      <div className="hidden md:block bg-card-dark border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
         <table className="w-full text-left">
           <thead className="bg-black/50 text-gray-400">
             <tr>

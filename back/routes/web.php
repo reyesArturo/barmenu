@@ -7,8 +7,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/deploy-migrate', function () {
+Route::middleware(['auth', 'role:admin'])->get('/deploy-migrate', function () {
     Artisan::call('migrate --force');
-    Artisan::call('db:seed');
-    return "Tablas creadas y seeders ejecutados con éxito: " . Artisan::output();
+    Artisan::call('db:seed --force');
+    return "Tablas creadas y seeders ejecutados con exito: " . Artisan::output();
 });

@@ -171,7 +171,7 @@ function ClientMenu() {
       {trackedOrder && currentStatusMeta && (
         <div className="px-4 pt-5">
           <div className={`border rounded-2xl p-4 ${currentStatusMeta.bg}`}>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className={`mt-1 ${currentStatusMeta.accent}`}>
                   <StatusIcon size={20} />
@@ -182,7 +182,7 @@ function ClientMenu() {
                   <p className="text-sm text-gray-300 mt-1">{currentStatusMeta.description}</p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right">
                 <p className="text-xs uppercase tracking-widest text-gray-500">Orden</p>
                 <p className="text-lg font-black text-white">#{trackedOrder.id}</p>
               </div>
@@ -273,7 +273,7 @@ function ClientMenu() {
           />
 
           {/* Panel Lateral */}
-          <div className="relative w-full sm:w-md h-full bg-bg-dark border-l border-white/10 shadow-2xl flex flex-col mt-auto rounded-t-3xl sm:rounded-none transition-transform translate-y-0 sm:translate-x-0">
+          <div className="relative w-full sm:w-md max-h-[92vh] sm:max-h-full h-full bg-bg-dark border-l border-white/10 shadow-2xl flex flex-col mt-auto rounded-t-3xl sm:rounded-none transition-transform translate-y-0 sm:translate-x-0">
             {/* Header del modal */}
             <div className="p-5 border-b border-white/5 flex justify-between items-center bg-card-dark">
               <h2 className="text-2xl font-black uppercase text-secondary">Mi Pedido</h2>
@@ -323,9 +323,9 @@ function ClientMenu() {
             {/* Footer pagar */}
             {items.length > 0 && (
               <div className="p-6 bg-card-dark border-t border-white/5">
-                <div className="flex justify-between items-end mb-6">
+                <div className="flex justify-between items-end mb-6 gap-3">
                   <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">Total a pagar</span>
-                  <span className="text-4xl font-black text-white">${getCartTotal().toFixed(2)}</span>
+                  <span className="text-3xl sm:text-4xl font-black text-white">${getCartTotal().toFixed(2)}</span>
                 </div>
 
                 <button

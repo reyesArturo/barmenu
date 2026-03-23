@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, ChefHat, Calculator, UtensilsCrossed, QrCode, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, ChefHat, Calculator, UtensilsCrossed, QrCode, Moon, Sun, Menu, X } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
 const THEME_STORAGE_KEY = 'rb_theme';
@@ -12,6 +12,7 @@ const AdminLayout = () => {
   const roles = useAuthStore((state) => state.roles);
   const hasPermission = useAuthStore((state) => state.hasPermission);
   const [theme, setTheme] = useState(() => localStorage.getItem(THEME_STORAGE_KEY) || 'dark');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isAdmin = roles.includes('admin') || user?.role === 'admin';
   const isDark = theme !== 'light';
@@ -19,6 +20,10 @@ const AdminLayout = () => {
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', permission: 'metrics.view', icon: <LayoutDashboard size={20} /> },
@@ -37,13 +42,30 @@ const AdminLayout = () => {
 
   return (
     <div className={`admin-shell ${isDark ? 'theme-dark' : 'theme-light'} flex h-screen text-white font-sans overflow-hidden`}>
+      {sidebarOpen && (
+        <button
+          type="button"
+          aria-label="Cerrar menu"
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm md:hidden"
+        />
+      )}
+
       {/* Sidebar Lateral */}
-      <aside className="w-64 admin-sidebar border-r border-white/5 flex flex-col print:hidden">
+      <aside className={`w-72 max-w-[86vw] md:w-64 admin-sidebar border-r border-white/5 flex flex-col print:hidden fixed md:static inset-y-0 left-0 z-40 transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         <div className="p-6 border-b border-white/5 flex items-center gap-3">
           <h1 className="text-3xl font-black italic tracking-tighter text-[#E53935]">
             CH<span className="text-[#FF9800]"> V</span>
           </h1>
           <span className="text-[10px] bg-white/10 px-2 py-1 rounded uppercase font-bold tracking-widest text-gray-400">{roleLabel}</span>
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            className="ml-auto md:hidden p-2 rounded-lg bg-white/5 hover:bg-white/10"
+            aria-label="Cerrar"
+          >
+            <X size={16} />
+          </button>
         </div>
         
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto w-full">
@@ -88,6 +110,25 @@ const AdminLayout = () => {
 
       {/* Contenido Principal (Las otras pantallas cargan aquí adentro) */}
       <main className="admin-main flex-1 overflow-y-auto border-l border-white/5 relative">
+        <div className="md:hidden sticky top-0 z-20 backdrop-blur-md bg-black/60 border-b border-white/10 px-4 py-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="btn-hover p-2 rounded-lg bg-white/5 hover:bg-white/10"
+            aria-label="Abrir menu"
+          >
+            <Menu size={18} />
+          </button>
+          <p className="text-xs uppercase tracking-[0.2em] font-bold text-gray-300">{roleLabel}</p>
+          <button
+            type="button"
+            onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+            className="btn-hover p-2 rounded-lg bg-white/5 hover:bg-white/10"
+            aria-label="Cambiar tema"
+          >
+            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
         <Outlet />
       </main>
     </div>

@@ -38,57 +38,58 @@ function Admin() {
     (sum, product) => sum + product.data.reduce((subtotal, value) => subtotal + value, 0),
     0,
   );
-  const monthLabel = monthlyLabels[currentMonthIndex] || 'Mes actual';
+  const monthLabel = new Intl.DateTimeFormat('es-MX', { month: 'long' }).format(new Date());
+  const monthLabelCapitalized = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
   const bestProduct = monthlyTopProducts.length
     ? monthlyTopProducts[0]
     : null;
 
-  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center">Cargando métricas...</div>;
-  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center">Error al cargar o no tienes permisos.</div>;
+  if (isLoading) return <div className="h-screen bg-bg-dark text-white flex items-center justify-center px-4 text-center">Cargando métricas...</div>;
+  if (error) return <div className="h-screen bg-bg-dark text-red-500 flex items-center justify-center px-4 text-center">Error al cargar o no tienes permisos.</div>;
 
   return (
-    <div className="min-h-screen bg-bg-dark text-white p-6 font-sans">
+    <div className="min-h-screen bg-bg-dark text-white p-4 sm:p-6 font-sans">
       <header className="mb-8">
-        <h1 className="text-3xl font-black uppercase">Dashboard Dueño</h1>
-        <p className="text-gray-400">Resumen de ventas y métricas clave.</p>
+        <h1 className="text-2xl sm:text-3xl font-black uppercase">Dashboard Dueño</h1>
+        <p className="text-gray-400 text-sm sm:text-base">Resumen de ventas y métricas clave.</p>
       </header>
 
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-8"> */}
+        {/* <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
           <div className="bg-primary/20 p-4 rounded-xl text-primary"><DollarSign size={24} /></div>
           <div>
             <p className="text-sm text-gray-400">Ventas del Día</p>
             <p className="text-2xl font-bold">${metrics?.total_sales?.toFixed(2) || 0}</p>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+        {/* <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
           <div className="bg-secondary/20 p-4 rounded-xl text-secondary"><Receipt size={24} /></div>
           <div>
             <p className="text-sm text-gray-400">Total Pedidos</p>
             <p className="text-2xl font-bold">{metrics?.total_orders || 0}</p>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+        {/* <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
           <div className="bg-green-500/20 p-4 rounded-xl text-green-500"><TrendingUp size={24} /></div>
           <div>
             <p className="text-sm text-gray-400">Ticket Promedio</p>
             <p className="text-2xl font-bold">${metrics?.average_ticket?.toFixed(2) || 0}</p>
           </div>
-        </div>
+        </div> */}
 
-        <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
+        {/* <div className="bg-card-dark p-6 rounded-2xl border border-white/5 flex items-center gap-4">
           <div className="bg-blue-500/20 p-4 rounded-xl text-blue-400"><Clock3 size={24} /></div>
           <div>
             <p className="text-sm text-gray-400">Órdenes Activas</p>
             <p className="text-2xl font-bold">{(metrics?.status_counts?.pending || 0) + (metrics?.status_counts?.preparing || 0) + (metrics?.status_counts?.served || 0)}</p>
           </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        </div> */}
+      {/* </div> */}
+{/* 
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
         <div className="bg-card-dark border border-white/5 rounded-2xl p-4">
           <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">Pendientes</p>
           <p className="mt-2 text-2xl font-black text-white">{metrics?.status_counts?.pending || 0}</p>
@@ -105,18 +106,18 @@ function Admin() {
           <p className="text-xs uppercase tracking-widest text-gray-400 font-bold">Pagadas</p>
           <p className="mt-2 text-2xl font-black text-green-500">{metrics?.status_counts?.paid || 0}</p>
         </div>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1.25fr_1fr] gap-6 mb-8">
         <section className="bg-card-dark rounded-2xl border border-white/5 p-6">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <h2 className="text-xl font-bold uppercase">Productos Más Vendidos</h2>
-              <p className="text-sm text-gray-400">Vista clara del rendimiento en {monthLabel} sin usar gráficas.</p>
+              <p className="text-sm text-gray-400">Vista clara del rendimiento en {monthLabelCapitalized}</p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Mes Actual</p>
-              <p className="text-lg font-black text-white uppercase">{monthLabel}</p>
+              <p className="text-lg font-black text-white uppercase">{monthLabelCapitalized}</p>
             </div>
           </div>
 
@@ -138,7 +139,7 @@ function Admin() {
             </div>
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 mb-5 text-center text-gray-400">
-              Aún no hay ventas en {monthLabel} para mostrar un producto estrella.
+              Aún no hay ventas en {monthLabelCapitalized} para mostrar un producto estrella.
             </div>
           )}
 
