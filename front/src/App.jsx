@@ -13,7 +13,7 @@ import Cashier from './pages/Cashier';
 import MenuManager from './pages/MenuManager';
 import QRManager from './pages/QRManager';
 import Login from './pages/Login';
-// Comentario de prueba para git
+// Comentario de prueba para git 2
 function App() {
   return (
     <Router>
