@@ -13,7 +13,7 @@ import Cashier from './pages/Cashier';
 import MenuManager from './pages/MenuManager';
 import QRManager from './pages/QRManager';
 import Login from './pages/Login';
-
+// Comentario de prueba para git
 function App() {
   return (
     <Router>
@@ -23,7 +23,7 @@ function App() {
         <Route path="/cliente" element={<ClientMenu />} />
         <Route path="/cliente/:token" element={<ClientMenu />} />
         <Route path="/login" element={<Login />} />
-        
+
         {/* Bloque administrativo con la barra lateral  */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
